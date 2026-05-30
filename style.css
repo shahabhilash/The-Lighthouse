@@ -791,7 +791,17 @@ body.light-theme .nav-cta:hover {
   font-size: 1rem;
   transition: border-color var(--transition);
 }
+/* Dark theme calendar icon fix */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.8;
+  cursor: pointer;
+}
 
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  filter: invert(1) brightness(1.2);
+}
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
