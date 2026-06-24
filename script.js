@@ -1,5 +1,7 @@
 // DOM Elements
 const nav = document.getElementById("nav");
+const cuisineDropdown = document.getElementById("cuisine-filter");
+const menuSearch = document.getElementById("menu-search");
 const navToggle = document.getElementById("navToggle");
 const navMenu = document.getElementById("navMenu");
 const navLinks = document.querySelectorAll(".nav-link");
@@ -10,6 +12,8 @@ const reservationForm = document.getElementById("reservationForm");
 const dateInput = document.getElementById("reservation-date");
 const timeSelect = document.getElementById("time");
 const themeToggle = document.getElementById("themeToggle");
+const filterBtns = document.querySelectorAll(".filter-btn");
+const menuContent = document.querySelector(".menu-content");
 if (dateInput) {
   const tomorrow = new Date(Date.now() + 86400000);
   const maxDate  = new Date(Date.now() + 90 * 86400000);
@@ -82,22 +86,7 @@ function updateAvailableTimes() {
   });
 }
 
-// ── Theme Toggle ──
-const savedTheme = localStorage.getItem('theme');
 
-if (savedTheme === 'light') {
-  document.body.classList.add('light-theme');
-  themeToggle.textContent = '☀️';
-} else {
-  themeToggle.textContent = '🌙';
-}
-
-themeToggle.addEventListener('click', () => {
-  document.body.classList.toggle('light-theme');
-  const isLight = document.body.classList.contains('light-theme');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  themeToggle.textContent = isLight ? '☀️' : '🌙';
-});
 
 // ── Navigation scroll effect ──
 function handleScroll() {
@@ -157,67 +146,116 @@ function closeMobileMenu() {
   document.body.style.overflow = '';
 }
 
-// ── Menu search & filter ────
-const filterBtns = document.querySelectorAll('.filter-btn');
-const menuSearch = document.getElementById('menu-search');
+// Menu tabs functionality
+function switchMenuTab(e) {
+  const targetTab = e.target.dataset.tab;
 
-function filterMenuItems(filter = 'all', searchText = '') {
-  const menuItems = document.querySelectorAll('.menu-item');
+  // Update tab buttons
+  menuTabs.forEach((tab) => {
+    tab.classList.remove("active");
+  });
+  e.target.classList.add("active");
+
+  // Update panels
+  menuPanels.forEach((panel) => {
+    panel.classList.remove("active");
+    if (panel.id === targetTab) {
+      panel.classList.add("active");
+    }
+  });
+}
+
+//
+// Theme Toggle
+const savedTheme = localStorage.getItem("theme");
+
+if (savedTheme === "light") {
+  document.body.classList.add("light-theme");
+  themeToggle.textContent = "☀️";
+} else {
+  themeToggle.textContent = "🌙";
+}
+
+themeToggle.addEventListener("click", () => {
+  document.body.classList.toggle("light-theme");
+
+  const isLight = document.body.classList.contains("light-theme");
+
+  if (isLight) {
+    localStorage.setItem("theme", "light");
+    themeToggle.textContent = "☀️";
+  } else {
+    localStorage.setItem("theme", "dark");
+    themeToggle.textContent = "🌙";
+  }
+});
+
+// ── Menu Search and Filter ─────────────────────────
+
+
+
+function filterMenuItems(timeFilter, cuisineFilter, searchText) {
+  const menuItems = document.querySelectorAll(".menu-item");
   let visibleCount = 0;
 
   menuItems.forEach((item) => {
-    const itemName      = item.querySelector('h3').textContent.toLowerCase();
-    const category      = item.dataset.category;
+    // Check if the item has an H3 before trying to read it
+    const titleElement = item.querySelector("h3");
+    if (!titleElement) return; // Skip this loop iteration if structure is invalid
+
+    const itemName = titleElement.textContent.toLowerCase();
+    const timeCategory = item.dataset.category || "all"; 
+    const cuisineCategory = item.dataset.cuisine || "all";
+
     const matchesSearch = itemName.includes(searchText.toLowerCase());
+    const matchesTime = timeFilter === "all" || timeCategory === timeFilter;
+    const matchesCuisine = cuisineFilter === "all" || cuisineCategory === cuisineFilter;
 
-
-    const foodTag = item.querySelector(".food-tag");
-
-    const isVeg = foodTag.classList.contains("veg");
-    
-    const isNonVeg = foodTag.classList.contains("nonveg");
-
-    let matchesFilter = false;
-
-    if (filter === "all") {
-      matchesFilter = true;
-    } else if (
-      ["breakfast", "lunch", "dinner", "desserts", "drinks"].includes(filter)
-    ) {
-      matchesFilter = category === filter;
-    } else if (filter === "veg") {
-      matchesFilter = isVeg;
-    } else if (filter === "nonveg") {
-      matchesFilter = isNonVeg;
-    }
-
-
-    if (matchesSearch && matchesFilter) {
-      item.classList.remove('hidden-item');
+    if (matchesSearch && matchesTime && matchesCuisine) {
+      item.classList.remove("hidden-item");
       visibleCount++;
     } else {
       item.classList.add('hidden-item');
     }
   });
 
-  let noResults = document.querySelector('.no-results');
-  if (!visibleCount) {
+  // Handle "No Results" display
+  let noResults = document.querySelector(".no-results");
+  if (visibleCount === 0) {
     if (!noResults) {
-      noResults = document.createElement('p');
-      noResults.className = 'no-results';
-      noResults.textContent = 'No menu items found.';
-      document.querySelector('.menu-content').appendChild(noResults);
+      noResults = document.createElement("p");
+      noResults.className = "no-results";
+      noResults.textContent = "No menu items found.";
+      document.querySelector(".menu-content").appendChild(noResults);
     }
   } else if (noResults) {
     noResults.remove();
   }
 }
+function triggerFilter() {
+  const activeBtn = document.querySelector(".filter-btn.active");
+  const timeFilter = activeBtn ? activeBtn.dataset.filter : "all";
+  const cuisineFilter = cuisineDropdown ? cuisineDropdown.value : "all";
+  const searchText = menuSearch ? menuSearch.value : "";
+  
+  filterMenuItems(timeFilter, cuisineFilter, searchText);
+}
+if (cuisineDropdown) {
+  cuisineDropdown.addEventListener("change", triggerFilter);
+}
 
+if (menuSearch) {
+  menuSearch.addEventListener("input", triggerFilter);
+}
+// Filter buttons
 filterBtns.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    filterBtns.forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    filterMenuItems(btn.dataset.filter, menuSearch ? menuSearch.value : '');
+  btn.addEventListener("click", () => {
+    filterBtns.forEach((b) => b.classList.remove("active"));
+
+    btn.classList.add("active");
+    triggerFilter();
+
+    
   });
 });
 
@@ -228,7 +266,9 @@ if (menuSearch) {
   });
 }
 
-// ── Smooth scroll ──
+ 
+
+// Smooth scroll for navigation links
 function smoothScroll(e) {
   e.preventDefault();
   const targetId      = this.getAttribute('href');
@@ -241,15 +281,11 @@ function smoothScroll(e) {
       top: offsetTop,
       behavior: prefersReduced ? "auto" : "smooth",
     // FIX #15 partial — respect reduced motion in smooth scroll too
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({
-      top: targetSection.offsetTop - 80,
-      behavior: prefersReduced ? 'auto' : 'smooth',
-    });
-  }
+   
+  })
   closeMobileMenu();
 }
-
+}
 // ── Reservation form submission ──
 function handleFormSubmit(e) {
   e.preventDefault();
@@ -366,8 +402,7 @@ const style = document.createElement('style');
 style.textContent = `.visible { opacity: 1 !important; transform: translateY(0) !important; }`;
 document.head.appendChild(style);
 
-// Scroll to Discover - Auto slow scroll
-const heroScroll = document.querySelector(".hero-scroll");
+
 // ── Auto-scroll on hero "Scroll To Discover" click ───
 const heroScroll = document.querySelector('.hero-scroll');
 let autoScrollInterval = null;
@@ -620,35 +655,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ── Veg / Non-Veg Filter ──────────────────────────────
+// 1. Your filtering function, contained properly
 (function () {
   const filterBtns = document.querySelectorAll('.diet-btn');
   if (!filterBtns.length) return;
 
   function applyDietFilter(diet) {
-    // Filter within whichever panel is currently active
     const activePanels = document.querySelectorAll('.menu-panel.active');
-
-// Init
-renderReviews();
-
-// BackToTop
-const backToTopBtn = document.getElementById("backToTop");
-
-if (backToTopBtn) {
-  window.addEventListener("scroll", () => {
-    const past = window.scrollY > 300;
-    backToTopBtn.style.display = past ? "block" : "none";
-    backToTopBtn.classList.toggle("visible", past);
-  });
-
-  backToTopBtn.addEventListener("click", () => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({
-      top: 0,
-      behavior: prefersReduced ? "auto" : "smooth",
-    });
-  });
-}
+    
     activePanels.forEach(panel => {
       const items = panel.querySelectorAll('.menu-item');
       let visibleCount = 0;
@@ -660,7 +674,6 @@ if (backToTopBtn) {
         if (show) visibleCount++;
       });
 
-      // Show/hide no-results message
       let noResults = panel.querySelector('.diet-no-results');
       if (!noResults) {
         noResults = document.createElement('p');
@@ -680,11 +693,9 @@ if (backToTopBtn) {
     });
   });
 
-  // Re-apply filter when menu tab changes
   document.querySelectorAll('.menu-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       const activeDiet = document.querySelector('.diet-btn.active')?.dataset.diet || 'all';
-      // slight delay to let the panel become active
       setTimeout(() => applyDietFilter(activeDiet), 50);
     });
   });
@@ -905,4 +916,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // existing DOMContentLoaded handlers already call init functions earlier,
   // but ensure skeletons are attached after render
   initSkeletonLoaders();
-});
+})}
