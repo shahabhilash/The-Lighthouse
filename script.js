@@ -11,7 +11,9 @@ const heroBg = document.getElementById("heroBg");
 const reservationBg = document.getElementById("reservationBg");
 const reservationForm = document.getElementById("reservationForm");
 const dateInput = document.getElementById("reservation-date");
-const timeSelect = document.getElementById("time");
+const timeInput = document.getElementById("time");
+const timeSlotsGrid = document.getElementById("timeSlotsGrid");
+const guestsSelect = document.getElementById("guests");
 const themeToggle = document.getElementById("themeToggle");
 
 // FIX #4 — Declare filterBtns, menuTabs, menuPanels (were used but never declared)
@@ -42,34 +44,114 @@ if (dateInput) {
   dateInput.addEventListener('change', updateAvailableTimes);
 }
 
-// ── FIX #11 — Disable past time slots when today is selected ─────
-function updateAvailableTimes() {
-  if (!dateInput || !timeSelect) return;
+if (guestsSelect) {
+  guestsSelect.addEventListener('change', updateAvailableTimes);
+}
 
+// ── Live Table Availability ─────
+const TOTAL_TABLES = 12;
+const mockBookings = {};
+
+function getAvailableTables(dateStr, timeStr, guestsCount) {
+  if (mockBookings[dateStr] && mockBookings[dateStr][timeStr] !== undefined) {
+    return mockBookings[dateStr][timeStr];
+  }
+  const hash = dateStr.split('-').join('') + timeStr.replace(':', '') + (guestsCount || '2');
+  let num = parseInt(hash, 10);
+  
+  const hour = parseInt(timeStr.split(':')[0], 10);
+  if (hour >= 18 && hour <= 20) num += 7;
+  
+  const booked = (num % (TOTAL_TABLES + 3)) - 1; 
+  return Math.max(0, TOTAL_TABLES - Math.max(0, booked));
+}
+
+function handleTimeSlotClick(e, timeVal) {
+  e.preventDefault();
+  const btns = timeSlotsGrid.querySelectorAll('.time-slot-btn');
+  btns.forEach(b => b.classList.remove('selected'));
+  
+  const btn = e.currentTarget;
+  btn.classList.add('selected');
+  timeInput.value = timeVal;
+}
+
+function updateAvailableTimes() {
+  if (!dateInput || !timeSlotsGrid) return;
+  
   const selectedDate = dateInput.value;
+  const guestsCount = guestsSelect ? guestsSelect.value : '2';
+  
+  if (!selectedDate || !guestsCount) {
+    timeSlotsGrid.innerHTML = '<div class="time-slot-placeholder">Please select a date and number of guests to view available times.</div>';
+    timeInput.value = '';
+    return;
+  }
+
   const todayStr = new Date().toISOString().split('T')[0];
   const now = new Date();
   const currentHours = now.getHours();
   const currentMins = now.getMinutes();
 
-  timeSelect.querySelectorAll('option').forEach((option) => {
-    if (!option.value) return;
+  const allTimes = [
+    "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
+    "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
+    "19:00", "20:00", "21:00", "22:00", "23:00"
+  ];
 
-    const [optHours, optMins] = option.value.split(':').map(Number);
+  timeSlotsGrid.innerHTML = '';
+  let hasAvailable = false;
+
+  allTimes.forEach((timeVal) => {
+    const [optHours, optMins] = timeVal.split(':').map(Number);
+    let isPast = false;
 
     if (selectedDate === todayStr) {
-      const isPast =
-        optHours < currentHours ||
-        (optHours === currentHours && optMins <= currentMins + 30);
-
-      option.disabled = isPast;
-      if (isPast && option.selected) {
-        timeSelect.value = '';
-      }
-    } else {
-      option.disabled = false;
+      isPast = optHours < currentHours || (optHours === currentHours && optMins <= currentMins + 30);
     }
+    
+    const availableTables = getAvailableTables(selectedDate, timeVal, guestsCount);
+    const isFullyBooked = availableTables === 0;
+    
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'time-slot-btn';
+    
+    if (availableTables > 0 && availableTables <= 3) {
+      btn.classList.add('limited');
+    }
+    
+    if (isPast || isFullyBooked) {
+      btn.disabled = true;
+    } else {
+      hasAvailable = true;
+      btn.addEventListener('click', (e) => handleTimeSlotClick(e, timeVal));
+    }
+
+    if (timeInput.value === timeVal && !isPast && !isFullyBooked) {
+      btn.classList.add('selected');
+    }
+
+    const ampm = optHours >= 12 ? 'PM' : 'AM';
+    const displayHour = optHours % 12 || 12;
+    const timeLabel = `${displayHour}:${optMins === 0 ? '00' : optMins} ${ampm}`;
+    const availabilityText = isPast ? 'Past' : (isFullyBooked ? 'Booked' : (availableTables <= 3 ? `${availableTables} left` : 'Available'));
+    
+    btn.innerHTML = `
+      <span class="time-label">${timeLabel}</span>
+      <span class="availability">${availabilityText}</span>
+    `;
+    timeSlotsGrid.appendChild(btn);
   });
+  
+  if (!hasAvailable) {
+     timeSlotsGrid.innerHTML = '<div class="time-slot-placeholder">No times available for this date.</div>';
+  }
+
+  const selectedBtn = timeSlotsGrid.querySelector('.selected');
+  if (!selectedBtn) {
+    timeInput.value = '';
+  }
 }
 
 
@@ -311,13 +393,23 @@ function handleFormSubmit(e) {
     submitBtn.style.backgroundColor = '#4a9c6a';
     submitBtn.disabled = true;
 
+    // Simulate backend recording the booking
+    const selectedDate = dateInput.value;
+    const selectedTime = timeInput.value;
+    const guestsCount = guestsSelect ? guestsSelect.value : '2';
+    
+    if (selectedDate && selectedTime) {
+      if (!mockBookings[selectedDate]) mockBookings[selectedDate] = {};
+      const currentAvailable = getAvailableTables(selectedDate, selectedTime, guestsCount);
+      mockBookings[selectedDate][selectedTime] = Math.max(0, currentAvailable - 1);
+    }
+
     setTimeout(() => {
       reservationForm.reset();
       updateAvailableTimes();
       submitBtn.textContent = originalText;
       submitBtn.style.backgroundColor = '';
       submitBtn.disabled = false;
-      updateAvailableTimes();
     }, 3000);
   }
 }

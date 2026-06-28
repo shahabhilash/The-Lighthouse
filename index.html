@@ -838,32 +838,17 @@
               </div>
             </div>
             <div class="form-row">
-              <div class="form-group">
+              <div class="form-group full-width">
                 <label for="reservation-date">Date</label>
                 <input type="date" id="reservation-date" name="date" required />
               </div>
-              <div class="form-group">
-                <label for="time">Time</label>
-                <select id="time" name="time" required>
-                  <option value="">Select time</option>
-                  <option value="07:00">7:00 AM</option>
-                  <option value="08:00">8:00 AM</option>
-                  <option value="09:00">9:00 AM</option>
-                  <option value="10:00">10:00 AM</option>
-                  <option value="11:00">11:00 AM</option>
-                  <option value="12:00">12:00 PM</option>
-                  <option value="13:00">1:00 PM</option>
-                  <option value="14:00">2:00 PM</option>
-                  <option value="15:00">3:00 PM</option>
-                  <option value="16:00">4:00 PM</option>
-                  <option value="17:00">5:00 PM</option>
-                  <option value="18:00">6:00 PM</option>
-                  <option value="19:00">7:00 PM</option>
-                  <option value="20:00">8:00 PM</option>
-                  <option value="21:00">9:00 PM</option>
-                  <option value="22:00">10:00 PM</option>
-                  <option value="23:00">11:00 PM</option>
-                </select>
+            </div>
+            
+            <div class="form-group full-width time-selection-container">
+              <label>Available Times</label>
+              <input type="hidden" id="time" name="time" required />
+              <div class="time-slots-grid" id="timeSlotsGrid">
+                <div class="time-slot-placeholder">Please select a date and number of guests to view available times.</div>
               </div>
             </div>
             <div class="form-group full-width">
