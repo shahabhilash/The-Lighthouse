@@ -448,7 +448,24 @@ function getReviews() {
 function saveReviews(reviews) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(reviews));
 }
+function updateAverageRating() {
+  const averageRating = document.getElementById("average-rating");
+  if (!averageRating) return;
 
+  const userReviews = getReviews();
+  const allReviews = [pinnedReview, ...userReviews];
+
+  const totalRating = allReviews.reduce(
+    (sum, review) => sum + review.rating,
+    0
+  );
+
+  const average = (totalRating / allReviews.length).toFixed(1);
+
+  averageRating.textContent = `⭐ ${average}/5 from ${allReviews.length} review${
+    allReviews.length > 1 ? "s" : ""
+  }`;
+}
 function renderReviews() {
   const grid = document.getElementById('reviews-grid');
   if (!grid) return;
@@ -472,6 +489,7 @@ function renderReviews() {
       </div>`
     )
     .join('');
+    updateAverageRating();
 }
 
 // Star rating widget
