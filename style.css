@@ -2959,11 +2959,19 @@ body.light-theme .polaroid-tape {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 body.light-theme .order-dock {
   background-color: #ffffff;
 }
 
 body.light-theme .cart-summary {
   background-color: #f9f9f9;
+}
+
+/* ===== i18n TRANSITIONS ===== */
+.i18n-transition {
+  transition: opacity 0.3s ease;
+}
+
+.fade-out {
+  opacity: 0 !important;
 }

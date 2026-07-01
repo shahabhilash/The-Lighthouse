@@ -1075,6 +1075,56 @@ function hideLoadingOverlay() {
   setInterval(render, 60 * 1000);
 })();
 
+  // ─── i18n Logic ─────────────────────────────────────────────────────────────
+  function updateContent() {
+    const elements = document.querySelectorAll('[data-i18n], [data-i18n-placeholder]');
+    
+    // Add fade out
+    elements.forEach(el => el.classList.add('i18n-transition', 'fade-out'));
+    
+    setTimeout(() => {
+      elements.forEach(el => {
+        if (el.hasAttribute('data-i18n')) {
+          el.innerHTML = i18next.t(el.getAttribute('data-i18n'));
+        }
+        if (el.hasAttribute('data-i18n-placeholder')) {
+          el.setAttribute('placeholder', i18next.t(el.getAttribute('data-i18n-placeholder')));
+        }
+        el.classList.remove('fade-out');
+      });
+    }, 300);
+  }
+
+  function setupI18n() {
+    if (typeof i18next === 'undefined') return;
+
+    i18next
+      .use(i18nextHttpBackend)
+      .use(i18nextBrowserLanguageDetector)
+      .init({
+        fallbackLng: 'en',
+        debug: false,
+        backend: {
+          loadPath: '/locales/{{lng}}/translation.json',
+        }
+      }, function(err, t) {
+        if (err) return console.error(err);
+        
+        updateContent();
+        
+        const langSelect = document.querySelector('.language-select');
+        if (langSelect) {
+          langSelect.value = i18next.language.split('-')[0] || 'en';
+          langSelect.addEventListener('change', (e) => {
+            i18next.changeLanguage(e.target.value, () => {
+              updateContent();
+            });
+          });
+        }
+      });
+  }
+
+  setupI18n();
   setReservationDateRange();
   updateAvailableTimes();
   setupThemeToggle();
