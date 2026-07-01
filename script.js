@@ -647,23 +647,32 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateCartQty(id, delta) {
     const item = cart.find((cartItem) => cartItem.id === id);
     if (!item) return;
+    
+    item.qty += delta;
+    if (item.qty <= 0) {
+      cart = cart.filter((cartItem) => cartItem.id !== id);
+    }
+    
+    saveStoredList("lighthouse_cart", cart);
+    renderOrderState();
+  }
 
+  function initSkeletonLoaders() {
+    // Large section images: hero, about image, reservation bg
+    const largeContainers = [
+      document.querySelector('.hero-bg'),
+      document.querySelector('.about-image'),
+      document.querySelector('.reservation-bg'),
+    ];
 
-  // Large section images: hero, about image, reservation bg
-  const largeContainers = [
-    document.querySelector('.hero-bg'),
-    document.querySelector('.about-image'),
-    document.querySelector('.reservation-bg'),
-  ];
+    largeContainers.forEach((c) => {
+      if (c) attachSkeletonToSimpleImage(c, 360);
+    });
 
-  largeContainers.forEach((c) => {
-    if (c) attachSkeletonToSimpleImage(c, 360);
-  });
-
-  // Text blocks (about, reservation info, first paragraph areas)
-  const textTargets = document.querySelectorAll('.about-content, .reservation-info, .review-form-heading');
-  textTargets.forEach((t) => attachSkeletonToTextBlock(t, 3));
-}
+    // Text blocks (about, reservation info, first paragraph areas)
+    const textTargets = document.querySelectorAll('.about-content, .reservation-info, .review-form-heading');
+    textTargets.forEach((t) => attachSkeletonToTextBlock(t, 3));
+  }
 
 // Initialize skeletons once DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
