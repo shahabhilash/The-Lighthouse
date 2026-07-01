@@ -647,7 +647,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateCartQty(id, delta) {
     const item = cart.find((cartItem) => cartItem.id === id);
     if (!item) return;
-
+    
+    item.qty += delta;
+    if (item.qty <= 0) {
+      cart = cart.filter((cartItem) => cartItem.id !== id);
+    }
+    
+    saveStoredList("lighthouse_cart", cart);
+    renderOrderState();
+  }
 
   // Large section images: hero, about image, reservation bg
   const largeContainers = [
@@ -943,16 +951,88 @@ function hideLoadingOverlay() {
 
   function renderOrderState() {
     const totalCount = cart.reduce((sum, item) => sum + item.qty, 0);
-    const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+    const tax = subtotal * 0.05;
+    const serviceCharge = subtotal * 0.10;
+    const totalPrice = subtotal + tax + serviceCharge;
 
-    if (cartCountEl) cartCountEl.textContent = totalCount;
-    if (cartTotalEl) cartTotalEl.textContent = `\u20B9${totalPrice}`;
+    if (cartCountEl) {
+      cartCountEl.textContent = totalCount;
+      if (totalCount > 0) {
+        cartCountEl.classList.add("pop");
+        setTimeout(() => cartCountEl.classList.remove("pop"), 300);
+      }
+    }
+
+    const subtotalEl = document.getElementById("cartSubtotal");
+    const taxEl = document.getElementById("cartTax");
+    const serviceEl = document.getElementById("cartService");
+
+    if (subtotalEl) subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+    if (taxEl) taxEl.textContent = `₹${tax.toFixed(2)}`;
+    if (serviceEl) serviceEl.textContent = `₹${serviceCharge.toFixed(2)}`;
+    if (cartTotalEl) cartTotalEl.textContent = `₹${totalPrice.toFixed(2)}`;
     if (checkoutBtn) checkoutBtn.disabled = cart.length === 0;
+
+    if (cartItemsEl) {
+      if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<p class="empty-cart-msg" style="color:var(--color-text-muted);text-align:center;">Your cart is empty.</p>';
+      } else {
+        cartItemsEl.innerHTML = cart.map(item => `
+          <div class="cart-item">
+            <img src="${item.image}" alt="${item.title}" class="cart-item-img">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">₹${item.price}</div>
+            </div>
+            <div class="cart-item-controls">
+              <button class="cart-btn qty-minus" data-id="${item.id}">-</button>
+              <span>${item.qty}</span>
+              <button class="cart-btn qty-plus" data-id="${item.id}">+</button>
+            </div>
+          </div>
+        `).join('');
+
+        cartItemsEl.querySelectorAll('.qty-minus').forEach(btn => {
+          btn.addEventListener('click', (e) => updateCartQty(e.currentTarget.dataset.id, -1));
+        });
+        cartItemsEl.querySelectorAll('.qty-plus').forEach(btn => {
+          btn.addEventListener('click', (e) => updateCartQty(e.currentTarget.dataset.id, 1));
+        });
+      }
+    }
+
+    if (favoriteItemsEl) {
+      if (favorites.length === 0) {
+        favoriteItemsEl.innerHTML = '<p class="empty-favorites-msg" style="color:var(--color-text-muted);text-align:center;">No favorite items yet.</p>';
+      } else {
+        favoriteItemsEl.innerHTML = favorites.map(item => `
+          <div class="cart-item">
+            <img src="${item.image}" alt="${item.title}" class="cart-item-img">
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.title}</div>
+              <div class="cart-item-price">₹${item.price}</div>
+            </div>
+            <div class="cart-item-controls">
+              <button class="cart-btn favorite-remove" data-id="${item.id}">✕</button>
+            </div>
+          </div>
+        `).join('');
+
+        favoriteItemsEl.querySelectorAll('.favorite-remove').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.dataset.id;
+            const item = favorites.find(f => f.id === id);
+            if(item) toggleFavorite(item);
+          });
+        });
+      }
+    }
 
     document.querySelectorAll(".favorite-btn").forEach((btn) => {
       const isFavorite = favorites.some((item) => item.id === btn.dataset.id);
       btn.classList.toggle("active", isFavorite);
-      btn.textContent = isFavorite ? "\u2665" : "\u2661";
+      btn.textContent = isFavorite ? "♥" : "♡";
     });
   }
 

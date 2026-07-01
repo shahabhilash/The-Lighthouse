@@ -1059,6 +1059,53 @@
 
     <button id="backToTop" data-i18n="back_to_top">BACK TO TOP ▲</button>
 
+    <!-- Sliding Cart Drawer -->
+    <button id="orderToggle" class="order-toggle" aria-label="Toggle Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 20a1 1 0 100-2 1 1 0 000 2zM20 20a1 1 0 100-2 1 1 0 000 2z"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+      </svg>
+      <span id="cartCount" class="cart-badge">0</span>
+    </button>
+
+    <div id="orderDock" class="order-dock">
+      <div class="order-dock-header">
+        <button class="order-tab active" data-order-view="cart">Your Cart</button>
+        <button class="order-tab" data-order-view="favorites">Favorites</button>
+      </div>
+      <div class="order-dock-body">
+        <div id="cartView" class="order-view active">
+          <div id="cartItems" class="cart-items-container">
+            <!-- Cart items will be rendered here dynamically -->
+          </div>
+          <div class="cart-summary">
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <span id="cartSubtotal">₹0</span>
+            </div>
+            <div class="summary-line">
+              <span>Tax (5%)</span>
+              <span id="cartTax">₹0</span>
+            </div>
+            <div class="summary-line">
+              <span>Service Charge (10%)</span>
+              <span id="cartService">₹0</span>
+            </div>
+            <div class="summary-line total-line">
+              <span>Total</span>
+              <span id="cartTotal">₹0</span>
+            </div>
+            <button id="checkoutBtn" class="btn btn-primary btn-full" disabled>Checkout</button>
+          </div>
+        </div>
+        <div id="favoritesView" class="order-view">
+          <div id="favoriteItems" class="favorite-items-container">
+            <!-- Favorite items will be rendered here dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="script.js" defer></script>
   </body>
 </html>
