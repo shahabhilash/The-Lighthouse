@@ -193,19 +193,13 @@
         </div>
 
         <div class="menu-controls">
-          <input
-            type="text"
-            id="menu-search"
-            placeholder="Search dishes..."
-            class="menu-search"
-          />
+          <label for="menu-search" class="sr-only" data-i18n="menu.search_placeholder">Search Menu</label>
+          <input type="text" id="menu-search" placeholder="Search dishes..." class="menu-search" data-i18n-placeholder="menu.search_placeholder" />
           <div class="diet-filters">
             <button class="diet-btn active" data-type="all">All</button>
             <button class="diet-btn" data-type="veg">Veg</button>
             <button class="diet-btn" data-type="nonveg">Non-Veg</button>
           </div>
-          <label for="menu-search" class="sr-only" data-i18n="menu.search_placeholder">Search Menu</label>
-          <input type="text" id="menu-search" placeholder="Search dishes..." class="menu-search" data-i18n-placeholder="menu.search_placeholder" />
           <div class="menu-filters">
             <button class="filter-btn active" data-filter="all" data-i18n="menu.filter_all">All</button>
             <button class="filter-btn" data-filter="breakfast" data-i18n="menu.filter_breakfast">Breakfast</button>
