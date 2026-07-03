@@ -412,6 +412,7 @@ async function handleFormSubmit(e) {
       if (invalid) isValid = false;
     });
 
+    const emailInput = document.getElementById('email');
     if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailInput.value.trim())) {
       addError(emailInput, "Please enter a valid email address.");
       isValid = false;
